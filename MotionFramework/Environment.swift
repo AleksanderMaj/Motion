@@ -10,13 +10,14 @@ import Foundation
 
 struct Environment {
     var date = { Date.init() }
-    var locationManager = LocationManager()
+    var location = LocationManager()
+    var motion = MotionManager()
 }
-
 
 extension Environment {
     static let mock = Environment(
         date: { Date() },
-        locationManager: .mock
+        location: .mock,
+        motion: MotionManager()
     )
 }

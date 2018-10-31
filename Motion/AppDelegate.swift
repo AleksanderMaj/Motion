@@ -7,17 +7,17 @@
 //
 
 import UIKit
+import MotionFramework
 
-var Current = Environment()
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
+    var window: UIWindow? = UIWindow()
+    lazy var app = App(window: window!)
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-        return true
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        return app.didFinishLaunching(with: launchOptions)
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

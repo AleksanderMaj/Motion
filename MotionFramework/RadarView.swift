@@ -13,17 +13,14 @@ class RadarView: UIView {
     private let scale = CGFloat(5.0) // 1 meter == 5 points
     private let circleRadii = [CGFloat(5.0), 10.0, 20.0, 30.0, 50.0]
 
-    var location: CLLocation? {
-        didSet {
-            setNeedsDisplay()
-        }
-    }
+    var courses = [Double]()
+    var headings = [Double]()
 
     override func draw(_ rect: CGRect) {
         drawAxes()
         drawCircles()
-        drawAccuracyCircle()
-        drawCourse()
+        //drawAccuracyCircle()
+        drawCourses()
     }
 
     private func drawAxes() {
@@ -58,12 +55,12 @@ class RadarView: UIView {
         drawCircles(radii: circleRadii)
     }
 
-    private func drawAccuracyCircle() {
-        guard let accuracy = location?.horizontalAccuracy else { return }
-        UIColor.blue.set()
-
-        drawCircles(radii: [CGFloat(accuracy)])
-    }
+//    private func drawAccuracyCircle() {
+//        guard let accuracy = location?.horizontalAccuracy else { return }
+//        UIColor.blue.set()
+//
+//        drawCircles(radii: [CGFloat(accuracy)])
+//    }
 
     private func drawCircles(radii: [CGFloat]) {
         let ovalPaths = radii
@@ -78,25 +75,31 @@ class RadarView: UIView {
         }
     }
 
-    private func drawCourse() {
-        guard let course = location?.course,
-            course >= 0 else { return }
-        UIColor.red.set()
-        let transformedCourse = CGFloat(course - 90 )
-        let arcPath = UIBezierPath(
-            arcCenter: center,
-            radius: scale * 8.0,
-            startAngle: (transformedCourse - 15).toRadians(),
-            endAngle: (transformedCourse + 15).toRadians(),
-            clockwise: true)
-        let armPath = UIBezierPath()
-        armPath.move(to: arcPath.currentPoint)
-        armPath.addLine(to: center)
-        armPath.addLine(to: arcPath.reversing().currentPoint)
+    private func drawCourses() {
+        drawHeadings(courses, color: .blue, length: 20)
+        drawHeadings(headings, color: .red, length: 16)
+    }
 
-        armPath.stroke()
-        armPath.fill(with: .normal, alpha: 0.25)
-        //arcPath.stroke()
+    private func drawHeadings(_ headings: [Double], color: UIColor, length: CGFloat) {
+        let count = headings.count
+
+        color.set()
+        for (index, heading) in headings.enumerated() {
+            let rotatedHeading = CGFloat(heading - 0)
+            let arcPath = UIBezierPath(
+                arcCenter: center,
+                radius: scale * length,
+                startAngle: (rotatedHeading - 1).toRadians(),
+                endAngle: (rotatedHeading + 1).toRadians(),
+                clockwise: true)
+            let armPath = UIBezierPath()
+            armPath.move(to: arcPath.currentPoint)
+            armPath.addLine(to: center)
+            armPath.addLine(to: arcPath.reversing().currentPoint)
+
+            //armPath.stroke()
+            armPath.fill(with: .normal, alpha: CGFloat(count - index) / CGFloat(count))
+        }
     }
 }
 

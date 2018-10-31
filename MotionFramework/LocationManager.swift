@@ -11,39 +11,45 @@ import CoreLocation
 import Overture
 
 class LocationManager: NSObject {
+    typealias LocationHandler = (CLLocation) -> Void
+
     fileprivate lazy var manager: CLLocationManager = {
         let manager = CLLocationManager()
         manager.delegate = self
         return manager
     }()
 
-    var locationUpdateHandler: ((CLLocation) -> Void)? = {
-        print($0)
-    }
+    var locationUpdateHandler: LocationHandler = { _ in }
 
-    var startUpdates = startUpdatesImpl
+    var startUpdates = { (handler: @escaping LocationHandler) in
+        Current.location.locationUpdateHandler = handler
+        Current.location.manager.startUpdatingLocation()
+    }
+    var authorizationStatus = { CLLocationManager.authorizationStatus() }
     var requestAuthorization = requestAuthotizationImpl
 
+    var reference: CLLocation?
+    var latestLocation = { Current.location.manager.location }
 }
 
 private func startUpdatesImpl() {
-    Current.locationManager.manager.startUpdatingLocation()
+    Current.location.manager.startUpdatingLocation()
 }
 
 private func requestAuthotizationImpl() {
-    Current.locationManager.manager.requestAlwaysAuthorization()
+    Current.location.manager.requestAlwaysAuthorization()
 }
 
 extension LocationManager: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let lastLocation = locations.last else { return }
-        locationUpdateHandler?(lastLocation)
+        locationUpdateHandler(lastLocation)
     }
 }
 
 extension LocationManager {
     static let mock = with(LocationManager(), concat(
-        set(\LocationManager.startUpdates, mockStartUpdates),
+//        set(\LocationManager.startUpdates, mockStartUpdates),
         set(\LocationManager.requestAuthorization, mockRequestAuthotization)
     ))
 }
@@ -56,7 +62,7 @@ private func mockStartUpdates() {
 
     for (index, location) in locations.enumerated() {
         DispatchQueue.main.asyncAfter(deadline: .now() + Double(index), execute: {
-            Current.locationManager.locationUpdateHandler?(location)
+            Current.location.locationUpdateHandler(location)
         })
     }
 }
